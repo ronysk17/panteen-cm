@@ -1,0 +1,1420 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Community Agent · MENA</title>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/xlsx/0.18.5/xlsx.full.min.js"></script>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Cormorant+Garamond:ital,wght@0,400;0,500;0,600;1,400;1,500&family=Inter:wght@300;400;500;600;700&family=JetBrains+Mono:wght@400;500&display=swap" rel="stylesheet">
+<style>
+  /* ─────────────────────────────────────────
+     PALETTE — Light (default) cream & gold
+     ───────────────────────────────────────── */
+  :root {
+    --bg: #F5EBD6;
+    --bg-soft: #FBF4E2;
+    --bg-deeper: #EEDFBE;
+    --paper: #FFFCF5;
+    --paper-soft: #FAF3E1;
+
+    --ink: #2A2118;
+    --ink-soft: #5A4A36;
+    --ink-mute: #8B7654;
+    --ink-faint: #B5A077;
+
+    --gold: #B8893A;
+    --gold-deep: #8E6622;
+    --gold-light: #D9B763;
+    --gold-pale: #F3E3B6;
+    --gold-glow: rgba(184,137,58,0.18);
+
+    --line: rgba(142,102,34,0.18);
+    --line-soft: rgba(142,102,34,0.10);
+
+    --rose: #C28A82;
+    --sage: #7A8A5C;
+    --rose-soft: #F4E2DE;
+    --sage-soft: #E8EDDC;
+
+    --shadow-sm: 0 1px 2px rgba(74,52,20,0.06), 0 2px 6px rgba(74,52,20,0.04);
+    --shadow-md: 0 4px 12px rgba(74,52,20,0.07), 0 12px 32px rgba(74,52,20,0.06);
+    --shadow-lg: 0 12px 28px rgba(74,52,20,0.10), 0 40px 80px rgba(74,52,20,0.08);
+
+    --radius-sm: 8px;
+    --radius: 14px;
+    --radius-lg: 22px;
+    --radius-xl: 28px;
+  }
+
+  /* Dark gold-on-charcoal alternate */
+  :root[data-theme="dark"] {
+    --bg: #15110A;
+    --bg-soft: #1C1710;
+    --bg-deeper: #0F0C07;
+    --paper: #211B12;
+    --paper-soft: #1A1510;
+
+    --ink: #F3E3B6;
+    --ink-soft: #D9C28A;
+    --ink-mute: #A88E5A;
+    --ink-faint: #6F5C36;
+
+    --gold: #D9B763;
+    --gold-deep: #B8893A;
+    --gold-light: #F0CE7A;
+    --gold-pale: #4A3818;
+    --gold-glow: rgba(217,183,99,0.22);
+
+    --line: rgba(217,183,99,0.22);
+    --line-soft: rgba(217,183,99,0.10);
+
+    --rose: #D9A89F;
+    --sage: #9DAE7C;
+    --rose-soft: #2E211C;
+    --sage-soft: #1F2418;
+
+    --shadow-sm: 0 1px 2px rgba(0,0,0,0.4), 0 2px 6px rgba(0,0,0,0.3);
+    --shadow-md: 0 4px 12px rgba(0,0,0,0.4), 0 12px 32px rgba(0,0,0,0.35);
+    --shadow-lg: 0 12px 28px rgba(0,0,0,0.45), 0 40px 80px rgba(0,0,0,0.5);
+  }
+
+  * { box-sizing: border-box; margin: 0; padding: 0; }
+
+  html, body { background: var(--bg); }
+
+  body {
+    font-family: 'Inter', system-ui, sans-serif;
+    color: var(--ink);
+    min-height: 100vh;
+    overflow-x: hidden;
+    font-feature-settings: 'ss01', 'cv11';
+    -webkit-font-smoothing: antialiased;
+  }
+
+  /* Soft ambient glow — warm shelf light */
+  body::before {
+    content: '';
+    position: fixed; inset: 0;
+    background:
+      radial-gradient(ellipse 70% 50% at 50% 0%, var(--gold-glow) 0%, transparent 65%),
+      radial-gradient(ellipse 50% 40% at 0% 80%, rgba(184,137,58,0.08) 0%, transparent 60%),
+      radial-gradient(ellipse 40% 60% at 100% 100%, rgba(194,138,130,0.06) 0%, transparent 60%);
+    pointer-events: none; z-index: 0;
+  }
+
+  /* Subtle horizontal "shelf" line, echoing the reference */
+  body::after {
+    content: '';
+    position: fixed; left: 0; right: 0; top: 64%;
+    height: 1px;
+    background: linear-gradient(90deg, transparent 5%, var(--line) 50%, transparent 95%);
+    pointer-events: none; z-index: 0;
+    opacity: 0.6;
+  }
+
+  .app { position: relative; z-index: 1; max-width: 1080px; margin: 0 auto; padding: 36px 28px 96px; }
+
+  /* ─────────────────────────────────────────
+     TOP BAR — wordmark + theme + meta
+     ───────────────────────────────────────── */
+  .topbar {
+    display: flex; align-items: center; justify-content: space-between;
+    margin-bottom: 56px;
+  }
+  .wordmark {
+    display: flex; align-items: center; gap: 14px;
+  }
+  .wordmark-icon {
+    width: 38px; height: 38px; border-radius: 50%;
+    background: conic-gradient(from 220deg, var(--gold-deep), var(--gold-light), var(--gold), var(--gold-deep));
+    box-shadow: inset 0 1px 2px rgba(255,255,255,0.35), 0 2px 8px var(--gold-glow);
+    position: relative;
+  }
+  .wordmark-icon::after {
+    content: ''; position: absolute; inset: 6px; border-radius: 50%;
+    background: var(--paper);
+    box-shadow: inset 0 1px 1px rgba(74,52,20,0.15);
+  }
+  .wordmark-icon::before {
+    content: ''; position: absolute; inset: 12px; border-radius: 50%;
+    background: var(--gold);
+    z-index: 1;
+    box-shadow: 0 0 8px var(--gold-glow);
+  }
+  .wordmark-text { display: flex; flex-direction: column; line-height: 1; }
+  .wordmark-name {
+    font-family: 'Cormorant Garamond', serif;
+    font-weight: 500; font-size: 22px; letter-spacing: 0.5px;
+    color: var(--ink);
+  }
+  .wordmark-name em { font-style: italic; color: var(--gold-deep); }
+  .wordmark-sub {
+    font-size: 10px; letter-spacing: 3px; text-transform: uppercase;
+    color: var(--ink-mute); margin-top: 4px; font-weight: 500;
+  }
+
+  .topbar-right { display: flex; align-items: center; gap: 14px; }
+  .meta-chip {
+    display: inline-flex; align-items: center; gap: 8px;
+    font-size: 11px; letter-spacing: 1.5px; text-transform: uppercase;
+    color: var(--ink-mute); font-weight: 500;
+  }
+  .meta-dot { width: 6px; height: 6px; border-radius: 50%; background: var(--sage); box-shadow: 0 0 0 3px rgba(122,138,92,0.18); animation: live 2.6s infinite; }
+  @keyframes live { 0%,100%{transform:scale(1);opacity:1} 50%{transform:scale(1.3);opacity:0.6} }
+
+  .theme-toggle {
+    width: 36px; height: 36px; border-radius: 50%;
+    border: 1px solid var(--line);
+    background: var(--paper);
+    cursor: pointer;
+    display: inline-flex; align-items: center; justify-content: center;
+    color: var(--ink-soft);
+    transition: all 0.25s ease;
+    box-shadow: var(--shadow-sm);
+  }
+  .theme-toggle:hover { color: var(--gold-deep); border-color: var(--gold); transform: translateY(-1px); }
+  .theme-toggle svg { width: 16px; height: 16px; }
+
+  /* ─────────────────────────────────────────
+     HERO HEADER
+     ───────────────────────────────────────── */
+  header.hero { margin-bottom: 44px; max-width: 760px; }
+  .eyebrow {
+    display: inline-flex; align-items: center; gap: 10px;
+    font-size: 11px; letter-spacing: 2.8px; text-transform: uppercase;
+    color: var(--gold-deep); font-weight: 600; margin-bottom: 22px;
+  }
+  .eyebrow-rule { width: 28px; height: 1px; background: var(--gold); }
+
+  h1 {
+    font-family: 'Cormorant Garamond', serif;
+    font-weight: 500;
+    font-size: clamp(44px, 6vw, 76px);
+    line-height: 0.98;
+    color: var(--ink);
+    letter-spacing: -0.5px;
+    text-wrap: balance;
+  }
+  h1 em {
+    font-style: italic; font-weight: 500;
+    background: linear-gradient(135deg, var(--gold-deep) 0%, var(--gold-light) 50%, var(--gold-deep) 100%);
+    -webkit-background-clip: text; background-clip: text; color: transparent;
+  }
+  .subtitle {
+    margin-top: 18px; font-size: 16px; font-weight: 300;
+    color: var(--ink-soft); line-height: 1.55; max-width: 540px;
+  }
+  .subtitle strong { font-weight: 500; color: var(--ink); }
+
+  /* ─────────────────────────────────────────
+     TABS — editorial section switch
+     ───────────────────────────────────────── */
+  .tabs {
+    display: flex; gap: 0;
+    border-bottom: 1px solid var(--line);
+    margin-bottom: 36px;
+    padding-bottom: 0;
+  }
+  .tab {
+    display: flex; align-items: flex-start; gap: 14px;
+    padding: 18px 32px 22px 0;
+    margin-right: 32px;
+    border: none; background: transparent; cursor: pointer;
+    font-family: 'Inter', sans-serif;
+    text-align: left;
+    position: relative;
+    color: var(--ink-mute);
+    transition: color 0.25s ease;
+  }
+  .tab:hover { color: var(--ink-soft); }
+  .tab-num {
+    font-family: 'Cormorant Garamond', serif;
+    font-style: italic;
+    font-size: 18px; color: var(--ink-faint);
+    margin-top: 2px;
+    transition: color 0.25s;
+  }
+  .tab-body { display: flex; flex-direction: column; gap: 4px; }
+  .tab-title {
+    font-size: 15px; font-weight: 600; letter-spacing: -0.2px;
+  }
+  .tab-sub {
+    font-size: 12px; color: var(--ink-faint); font-weight: 400;
+  }
+  .tab.active { color: var(--ink); }
+  .tab.active .tab-num { color: var(--gold-deep); }
+  .tab.active::after {
+    content: ''; position: absolute; left: 0; right: 32px; bottom: -1px;
+    height: 2px;
+    background: linear-gradient(90deg, var(--gold-deep), var(--gold-light));
+    border-radius: 2px;
+  }
+
+  /* ─────────────────────────────────────────
+     PANEL
+     ───────────────────────────────────────── */
+  .panel { animation: fadeUp 0.5s cubic-bezier(.2,.7,.2,1); }
+  @keyframes fadeUp { from{opacity:0;transform:translateY(14px)} to{opacity:1;transform:translateY(0)} }
+
+  /* ─────────────────────────────────────────
+     CARD — paper with soft shadow + gold hairline
+     ───────────────────────────────────────── */
+  .card {
+    background: var(--paper);
+    border: 1px solid var(--line-soft);
+    border-radius: var(--radius-lg);
+    padding: 32px;
+    margin-bottom: 20px;
+    box-shadow: var(--shadow-md);
+    position: relative;
+  }
+  .card-head {
+    display: flex; align-items: baseline; justify-content: space-between;
+    margin-bottom: 24px; gap: 16px;
+  }
+  .card-step {
+    display: flex; align-items: baseline; gap: 14px;
+  }
+  .card-step-num {
+    font-family: 'Cormorant Garamond', serif; font-style: italic;
+    font-size: 28px; color: var(--gold-deep); line-height: 1;
+  }
+  .card-title {
+    font-family: 'Cormorant Garamond', serif;
+    font-size: 26px; font-weight: 500; color: var(--ink);
+    line-height: 1.1;
+  }
+  .card-meta {
+    font-size: 11px; letter-spacing: 2px; text-transform: uppercase;
+    color: var(--ink-mute); font-weight: 500;
+  }
+
+  /* ─────────────────────────────────────────
+     TONE STRIP — editorial tag row
+     ───────────────────────────────────────── */
+  .tone-strip {
+    display: flex; align-items: center; gap: 20px;
+    padding: 18px 28px;
+    background: linear-gradient(105deg, var(--gold-pale) 0%, var(--paper-soft) 100%);
+    border: 1px solid var(--line);
+    border-radius: var(--radius-lg);
+    margin-bottom: 24px;
+    box-shadow: var(--shadow-sm);
+  }
+  .tone-label {
+    font-family: 'Cormorant Garamond', serif;
+    font-style: italic;
+    font-size: 18px; color: var(--gold-deep);
+    white-space: nowrap;
+    padding-right: 20px;
+    border-right: 1px solid var(--line);
+  }
+  .tone-tags { display: flex; gap: 10px; flex-wrap: wrap; }
+  .tone-tag {
+    font-size: 12px; font-weight: 500;
+    color: var(--ink-soft);
+    padding: 6px 14px;
+    background: var(--paper);
+    border: 1px solid var(--line-soft);
+    border-radius: 100px;
+    letter-spacing: 0.1px;
+    transition: all 0.2s;
+  }
+  .tone-tag:hover { border-color: var(--gold); color: var(--gold-deep); }
+
+  /* ─────────────────────────────────────────
+     UPLOAD ZONE — couture-style drop area
+     ───────────────────────────────────────── */
+  .upload-zone {
+    position: relative;
+    border: 1px dashed var(--gold);
+    background: var(--paper-soft);
+    border-radius: var(--radius);
+    padding: 56px 40px;
+    text-align: center;
+    cursor: pointer;
+    transition: all 0.3s ease;
+    overflow: hidden;
+  }
+  .upload-zone::before {
+    content: ''; position: absolute; inset: 6px;
+    border: 1px solid var(--line-soft);
+    border-radius: calc(var(--radius) - 4px);
+    pointer-events: none;
+  }
+  .upload-zone:hover, .upload-zone.drag {
+    background: linear-gradient(135deg, var(--gold-pale) 0%, var(--paper-soft) 100%);
+    border-color: var(--gold-deep);
+    transform: translateY(-1px);
+    box-shadow: var(--shadow-md);
+  }
+  .upload-zone input { position: absolute; inset: 0; opacity: 0; cursor: pointer; z-index: 2; }
+  .upload-icon {
+    width: 56px; height: 56px; border-radius: 50%;
+    background: var(--paper);
+    border: 1px solid var(--line);
+    margin: 0 auto 16px;
+    display: flex; align-items: center; justify-content: center;
+    color: var(--gold-deep);
+    box-shadow: var(--shadow-sm);
+  }
+  .upload-icon svg { width: 22px; height: 22px; }
+  .upload-text {
+    font-family: 'Cormorant Garamond', serif;
+    font-size: 22px; color: var(--ink); font-weight: 500;
+    letter-spacing: -0.2px;
+  }
+  .upload-text em { font-style: italic; color: var(--gold-deep); }
+  .upload-hint {
+    margin-top: 8px; font-size: 12px; color: var(--ink-mute);
+    letter-spacing: 2px; text-transform: uppercase; font-weight: 500;
+  }
+
+  /* ─────────────────────────────────────────
+     INFO BOX
+     ───────────────────────────────────────── */
+  .info-box {
+    display: flex; align-items: flex-start; gap: 12px;
+    background: var(--paper-soft);
+    border-left: 2px solid var(--gold);
+    border-radius: 0 8px 8px 0;
+    padding: 14px 18px;
+    margin-bottom: 22px;
+    font-size: 13px; line-height: 1.55;
+    color: var(--ink-soft);
+  }
+  .info-box-icon {
+    color: var(--gold-deep);
+    flex-shrink: 0;
+    margin-top: 1px;
+  }
+  .info-box-icon svg { width: 16px; height: 16px; }
+
+  /* ─────────────────────────────────────────
+     STATS — editorial figures
+     ───────────────────────────────────────── */
+  .stats-row {
+    display: grid; grid-template-columns: repeat(3, 1fr);
+    gap: 0;
+    margin-bottom: 24px;
+    border: 1px solid var(--line-soft);
+    border-radius: var(--radius);
+    overflow: hidden;
+    background: var(--paper-soft);
+  }
+  .stat {
+    padding: 20px 24px;
+    border-right: 1px solid var(--line-soft);
+    position: relative;
+  }
+  .stat:last-child { border-right: none; }
+  .stat-l {
+    font-size: 10px; letter-spacing: 2.5px; text-transform: uppercase;
+    color: var(--ink-mute); font-weight: 600;
+    margin-bottom: 8px;
+  }
+  .stat-n {
+    font-family: 'Cormorant Garamond', serif;
+    font-size: 40px; font-weight: 500; line-height: 1;
+    color: var(--ink);
+    letter-spacing: -1px;
+  }
+  .stat-n em {
+    font-style: italic; color: var(--gold-deep);
+  }
+
+  /* ─────────────────────────────────────────
+     MAPPER
+     ───────────────────────────────────────── */
+  .mapper {
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    gap: 24px;
+    align-items: center;
+    padding: 16px 0 4px;
+  }
+  .mapper-label {
+    font-size: 11px; letter-spacing: 2px; text-transform: uppercase;
+    color: var(--ink-mute); font-weight: 600;
+  }
+  .select-wrap {
+    position: relative;
+  }
+  .select-wrap::after {
+    content: ''; position: absolute; right: 16px; top: 50%;
+    width: 8px; height: 8px;
+    border-right: 1.5px solid var(--gold-deep);
+    border-bottom: 1.5px solid var(--gold-deep);
+    transform: translateY(-70%) rotate(45deg);
+    pointer-events: none;
+  }
+  .mapper select {
+    width: 100%; appearance: none; -webkit-appearance: none;
+    background: var(--paper-soft);
+    border: 1px solid var(--line);
+    border-radius: 10px;
+    padding: 12px 40px 12px 16px;
+    color: var(--ink);
+    font-family: 'Inter', sans-serif; font-size: 14px; font-weight: 500;
+    outline: none; cursor: pointer;
+    transition: all 0.2s;
+  }
+  .mapper select:focus { border-color: var(--gold); box-shadow: 0 0 0 3px var(--gold-glow); }
+  select option { background: var(--paper); color: var(--ink); }
+
+  /* ─────────────────────────────────────────
+     TABLE
+     ───────────────────────────────────────── */
+  .table-wrap {
+    overflow-x: auto; border-radius: var(--radius);
+    border: 1px solid var(--line-soft);
+    background: var(--paper-soft);
+    margin-bottom: 20px;
+  }
+  table { width: 100%; border-collapse: collapse; font-size: 13px; }
+  thead { background: var(--bg-deeper); }
+  :root[data-theme="dark"] thead { background: var(--paper); }
+  th {
+    color: var(--ink-mute);
+    padding: 14px 18px; text-align: left;
+    font-weight: 600;
+    font-size: 10px; letter-spacing: 2px; text-transform: uppercase;
+    border-bottom: 1px solid var(--line);
+  }
+  td {
+    padding: 14px 18px;
+    border-top: 1px solid var(--line-soft);
+    vertical-align: top;
+    line-height: 1.55;
+  }
+  tbody tr { transition: background 0.15s; }
+  tbody tr:hover { background: var(--paper); }
+  .col-num {
+    font-family: 'Cormorant Garamond', serif;
+    font-style: italic;
+    color: var(--ink-faint); font-size: 16px;
+    width: 40px;
+  }
+  .col-comment {
+    color: var(--ink-soft); max-width: 300px;
+  }
+  .col-reply {
+    color: var(--ink); max-width: 380px;
+    font-family: 'Cormorant Garamond', serif;
+    font-style: italic; font-size: 15px;
+    line-height: 1.5;
+  }
+  .col-reply.pending {
+    font-family: 'Inter', sans-serif; font-style: normal; font-size: 12px;
+    color: var(--ink-faint); letter-spacing: 1.5px; text-transform: uppercase;
+  }
+  .col-status { text-align: center; white-space: nowrap; }
+
+  /* ─────────────────────────────────────────
+     BADGES
+     ───────────────────────────────────────── */
+  .badge {
+    display: inline-flex; align-items: center; gap: 6px;
+    padding: 4px 11px; border-radius: 100px;
+    font-size: 11px; font-weight: 600;
+    letter-spacing: 0.5px;
+  }
+  .badge-dot { width: 5px; height: 5px; border-radius: 50%; }
+  .badge-pending { background: var(--gold-pale); color: var(--gold-deep); }
+  .badge-pending .badge-dot { background: var(--gold-deep); }
+  .badge-done { background: var(--sage-soft); color: var(--sage); }
+  .badge-done .badge-dot { background: var(--sage); }
+  .badge-error { background: var(--rose-soft); color: var(--rose); }
+  .badge-error .badge-dot { background: var(--rose); }
+  .badge-processing { background: var(--paper-soft); color: var(--gold-deep); }
+  .badge-processing .badge-dot { background: var(--gold-deep); animation: live 1s infinite; }
+
+  /* ─────────────────────────────────────────
+     BUTTONS
+     ───────────────────────────────────────── */
+  .actions { display: flex; gap: 12px; flex-wrap: wrap; margin-top: 24px; }
+  .btn {
+    display: inline-flex; align-items: center; gap: 10px;
+    padding: 14px 26px;
+    border-radius: 100px; border: none;
+    font-family: 'Inter', sans-serif;
+    font-size: 13px; font-weight: 600; letter-spacing: 0.3px;
+    cursor: pointer;
+    transition: all 0.25s cubic-bezier(.2,.7,.2,1);
+    position: relative;
+  }
+  .btn svg { width: 15px; height: 15px; }
+  .btn-primary {
+    background: linear-gradient(135deg, var(--gold-deep) 0%, var(--gold) 45%, var(--gold-light) 100%);
+    color: #FFFCF5;
+    box-shadow: 0 4px 14px var(--gold-glow), inset 0 1px 0 rgba(255,255,255,0.25);
+  }
+  .btn-primary:hover { transform: translateY(-2px); box-shadow: 0 8px 22px var(--gold-glow), inset 0 1px 0 rgba(255,255,255,0.3); }
+  .btn-primary:active { transform: translateY(0); }
+  .btn-primary:disabled { opacity: 0.55; cursor: not-allowed; transform: none; }
+
+  .btn-ghost {
+    background: var(--paper);
+    color: var(--ink);
+    border: 1px solid var(--line);
+  }
+  .btn-ghost:hover { border-color: var(--gold); color: var(--gold-deep); background: var(--paper-soft); }
+
+  .btn-sage {
+    background: var(--sage);
+    color: #FFFCF5;
+    box-shadow: 0 4px 14px rgba(122,138,92,0.25);
+  }
+  .btn-sage:hover { transform: translateY(-2px); box-shadow: 0 8px 22px rgba(122,138,92,0.3); }
+
+  /* ─────────────────────────────────────────
+     PROGRESS
+     ───────────────────────────────────────── */
+  .progress-block {
+    background: var(--paper-soft);
+    border: 1px solid var(--line-soft);
+    border-radius: var(--radius);
+    padding: 18px 22px;
+    margin-bottom: 20px;
+  }
+  .progress-head {
+    display: flex; justify-content: space-between; align-items: baseline;
+    margin-bottom: 12px;
+  }
+  .progress-text { font-size: 13px; color: var(--ink-soft); font-weight: 500; }
+  .progress-pct {
+    font-family: 'Cormorant Garamond', serif; font-style: italic;
+    font-size: 22px; color: var(--gold-deep);
+  }
+  .progress-bar {
+    height: 3px; background: var(--bg-deeper);
+    border-radius: 100px; overflow: hidden;
+  }
+  .progress-fill {
+    height: 100%; border-radius: 100px;
+    background: linear-gradient(90deg, var(--gold-deep), var(--gold-light));
+    transition: width 0.6s cubic-bezier(.2,.7,.2,1);
+    box-shadow: 0 0 8px var(--gold-glow);
+  }
+
+  /* ─────────────────────────────────────────
+     PROACTIVE
+     ───────────────────────────────────────── */
+  .field-label {
+    font-size: 11px; letter-spacing: 2.5px; text-transform: uppercase;
+    color: var(--ink-mute); font-weight: 600;
+    margin-bottom: 10px;
+  }
+  .opp-input {
+    width: 100%;
+    background: var(--paper-soft);
+    border: 1px solid var(--line);
+    border-radius: var(--radius);
+    padding: 18px 20px;
+    color: var(--ink);
+    font-family: 'Cormorant Garamond', serif;
+    font-style: italic;
+    font-size: 18px;
+    line-height: 1.55;
+    resize: vertical;
+    min-height: 130px;
+    outline: none;
+    transition: all 0.2s;
+  }
+  .opp-input:focus {
+    border-color: var(--gold);
+    box-shadow: 0 0 0 4px var(--gold-glow);
+    background: var(--paper);
+  }
+  .opp-input::placeholder { color: var(--ink-faint); font-style: italic; }
+
+  .pill-row { display: flex; gap: 10px; flex-wrap: wrap; margin-top: 8px; }
+  .pill {
+    padding: 9px 18px; border-radius: 100px;
+    font-size: 12px; font-weight: 500; cursor: pointer;
+    border: 1px solid var(--line);
+    background: var(--paper);
+    color: var(--ink-mute);
+    transition: all 0.2s;
+    letter-spacing: 0.2px;
+    display: inline-flex; align-items: center; gap: 7px;
+  }
+  .pill:hover { border-color: var(--gold); color: var(--gold-deep); }
+  .pill.active {
+    background: linear-gradient(135deg, var(--gold-deep), var(--gold));
+    border-color: var(--gold-deep);
+    color: #FFFCF5;
+    box-shadow: 0 2px 8px var(--gold-glow);
+  }
+  .pill-mark {
+    width: 5px; height: 5px; border-radius: 50%;
+    background: currentColor;
+    opacity: 0.5;
+  }
+  .pill.active .pill-mark { background: #FFFCF5; opacity: 1; }
+
+  /* ─────────────────────────────────────────
+     IDEAS GRID — editorial cards
+     ───────────────────────────────────────── */
+  .ideas-grid {
+    display: grid; grid-template-columns: repeat(auto-fill, minmax(320px, 1fr));
+    gap: 18px;
+    margin-top: 8px;
+  }
+  .idea-card {
+    background: var(--paper);
+    border: 1px solid var(--line-soft);
+    border-radius: var(--radius);
+    padding: 24px 24px 20px;
+    transition: all 0.3s ease;
+    position: relative;
+    box-shadow: var(--shadow-sm);
+    overflow: hidden;
+  }
+  .idea-card::before {
+    content: ''; position: absolute; left: 0; top: 0; bottom: 0;
+    width: 2px;
+    background: linear-gradient(180deg, var(--gold-deep), var(--gold-light));
+    opacity: 0;
+    transition: opacity 0.3s;
+  }
+  .idea-card:hover {
+    transform: translateY(-3px);
+    box-shadow: var(--shadow-md);
+    border-color: var(--gold);
+  }
+  .idea-card:hover::before { opacity: 1; }
+  .idea-type {
+    font-size: 10px; letter-spacing: 2.5px; text-transform: uppercase;
+    color: var(--gold-deep); margin-bottom: 12px; font-weight: 600;
+    display: flex; align-items: center; gap: 8px;
+  }
+  .idea-type::after {
+    content: ''; flex: 1; height: 1px; background: var(--line);
+  }
+  .idea-title {
+    font-family: 'Cormorant Garamond', serif;
+    font-size: 22px; font-weight: 500;
+    color: var(--ink); margin-bottom: 12px;
+    line-height: 1.15; letter-spacing: -0.3px;
+  }
+  .idea-body {
+    font-size: 13.5px; color: var(--ink-soft);
+    line-height: 1.6;
+  }
+  .idea-caption {
+    margin-top: 16px; padding-top: 14px;
+    border-top: 1px dashed var(--line-soft);
+    font-family: 'Cormorant Garamond', serif;
+    font-style: italic;
+    font-size: 14px; color: var(--ink);
+    line-height: 1.55;
+  }
+  .idea-caption::before {
+    content: '"';
+    font-family: 'Cormorant Garamond', serif;
+    font-size: 28px; color: var(--gold);
+    line-height: 0; vertical-align: -10px; margin-right: 4px;
+  }
+
+  /* ─────────────────────────────────────────
+     LOADING (brainstorm)
+     ───────────────────────────────────────── */
+  .loading-card {
+    text-align: center; padding: 56px 32px;
+    background: var(--paper);
+    border: 1px solid var(--line-soft);
+    border-radius: var(--radius-lg);
+    box-shadow: var(--shadow-md);
+  }
+  .loading-orb {
+    width: 60px; height: 60px; margin: 0 auto 22px;
+    border-radius: 50%;
+    background: conic-gradient(from 0deg, var(--gold-deep), var(--gold-light), var(--gold-deep));
+    animation: spin 2.4s linear infinite;
+    position: relative;
+    box-shadow: 0 0 24px var(--gold-glow);
+  }
+  .loading-orb::after {
+    content: ''; position: absolute; inset: 8px;
+    border-radius: 50%; background: var(--paper);
+  }
+  .loading-orb::before {
+    content: ''; position: absolute; inset: 18px;
+    border-radius: 50%;
+    background: var(--gold);
+    z-index: 1;
+    animation: pulse 1.6s ease-in-out infinite;
+  }
+  @keyframes spin { to { transform: rotate(360deg); } }
+  @keyframes pulse { 0%,100%{transform:scale(1);opacity:0.8} 50%{transform:scale(1.15);opacity:1} }
+  .loading-title {
+    font-family: 'Cormorant Garamond', serif;
+    font-style: italic;
+    font-size: 22px; color: var(--ink);
+    margin-bottom: 6px;
+  }
+  .loading-sub { font-size: 12px; color: var(--ink-mute); letter-spacing: 1.5px; text-transform: uppercase; }
+
+  .spinner {
+    width: 14px; height: 14px; border-radius: 50%;
+    border: 2px solid rgba(255,252,245,0.3);
+    border-top-color: #FFFCF5;
+    animation: spin 0.7s linear infinite;
+    display: inline-block;
+  }
+
+  /* ─────────────────────────────────────────
+     EMPTY
+     ───────────────────────────────────────── */
+  .empty { text-align: center; padding: 64px 24px; color: var(--ink-faint); }
+
+  /* ─────────────────────────────────────────
+     TWEAKS PANEL
+     ───────────────────────────────────────── */
+  .tweaks {
+    position: fixed; bottom: 24px; right: 24px;
+    background: var(--paper);
+    border: 1px solid var(--line);
+    border-radius: var(--radius);
+    box-shadow: var(--shadow-lg);
+    padding: 16px 18px;
+    z-index: 100;
+    display: none;
+    min-width: 240px;
+  }
+  .tweaks.open { display: block; animation: fadeUp 0.3s; }
+  .tweaks-head {
+    display: flex; justify-content: space-between; align-items: center;
+    margin-bottom: 14px;
+  }
+  .tweaks-title {
+    font-family: 'Cormorant Garamond', serif;
+    font-style: italic; font-size: 18px;
+    color: var(--ink);
+  }
+  .tweaks-close {
+    width: 24px; height: 24px; border-radius: 50%;
+    border: none; background: var(--paper-soft);
+    cursor: pointer; color: var(--ink-mute);
+    display: flex; align-items: center; justify-content: center;
+  }
+  .tweaks-close:hover { background: var(--gold-pale); color: var(--gold-deep); }
+  .tweaks-row { margin-bottom: 12px; }
+  .tweaks-row:last-child { margin-bottom: 0; }
+  .tweaks-label {
+    font-size: 10px; letter-spacing: 2px; text-transform: uppercase;
+    color: var(--ink-mute); font-weight: 600;
+    margin-bottom: 8px;
+  }
+  .tweaks-seg {
+    display: grid; grid-template-columns: 1fr 1fr;
+    background: var(--paper-soft); border: 1px solid var(--line-soft);
+    border-radius: 100px; padding: 3px; gap: 2px;
+  }
+  .tweaks-seg button {
+    border: none; background: transparent;
+    padding: 8px 12px; border-radius: 100px;
+    font-family: 'Inter', sans-serif;
+    font-size: 12px; font-weight: 500; color: var(--ink-mute);
+    cursor: pointer; transition: all 0.2s;
+  }
+  .tweaks-seg button.on {
+    background: var(--paper); color: var(--ink);
+    box-shadow: var(--shadow-sm);
+  }
+
+  /* ─────────────────────────────────────────
+     RESPONSIVE
+     ───────────────────────────────────────── */
+  @media (max-width: 640px) {
+    .app { padding: 24px 18px 80px; }
+    .topbar { margin-bottom: 32px; }
+    .tab { padding: 14px 0 18px 0; margin-right: 20px; }
+    .tab.active::after { right: 20px; }
+    .card { padding: 24px 20px; }
+    .stats-row { grid-template-columns: 1fr; }
+    .stat { border-right: none; border-bottom: 1px solid var(--line-soft); }
+    .stat:last-child { border-bottom: none; }
+    .mapper { grid-template-columns: 1fr; gap: 8px; }
+    .tone-strip { flex-direction: column; align-items: flex-start; padding: 16px 20px; }
+    .tone-label { border-right: none; padding-right: 0; padding-bottom: 8px; border-bottom: 1px solid var(--line); width: 100%; }
+  }
+</style>
+</head>
+<body>
+
+<div class="app">
+
+  <!-- TOPBAR -->
+  <div class="topbar">
+    <div class="wordmark">
+      <div class="wordmark-icon"></div>
+      <div class="wordmark-text">
+        <div class="wordmark-name">Community <em>Agent</em></div>
+        <div class="wordmark-sub">Pantene · MENA</div>
+      </div>
+    </div>
+    <div class="topbar-right">
+      <span class="meta-chip"><span class="meta-dot"></span>Live · GPT-4o</span>
+      <button class="theme-toggle" id="theme-toggle" title="Toggle theme">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M21 12.79A9 9 0 1 1 11.21 3 7 7 0 0 0 21 12.79z"/></svg>
+      </button>
+    </div>
+  </div>
+
+  <!-- HERO -->
+  <header class="hero">
+    <div class="eyebrow"><span class="eyebrow-rule"></span>An always-on community brain</div>
+    <h1>Replies that shine, ideas that <em>spark</em>.</h1>
+    <p class="subtitle">An AI-powered companion for the community team — <strong>reactive</strong> replies in the right tone, and <strong>proactive</strong> ideas for the moments that matter.</p>
+  </header>
+
+  <!-- TABS -->
+  <div class="tabs">
+    <button class="tab active" id="tab-reactive" onclick="switchTab('reactive')">
+      <span class="tab-num">01</span>
+      <span class="tab-body">
+        <span class="tab-title">Reactive</span>
+        <span class="tab-sub">Reply to community comments at scale</span>
+      </span>
+    </button>
+    <button class="tab" id="tab-proactive" onclick="switchTab('proactive')">
+      <span class="tab-num">02</span>
+      <span class="tab-body">
+        <span class="tab-title">Proactive</span>
+        <span class="tab-sub">Spark conversations around cultural moments</span>
+      </span>
+    </button>
+  </div>
+
+  <!-- REACTIVE PANEL -->
+  <div id="panel-reactive" class="panel">
+
+    <div class="tone-strip">
+      <span class="tone-label">Tone of voice</span>
+      <div class="tone-tags">
+        <span class="tone-tag">Confident</span>
+        <span class="tone-tag">Fun &amp; playful</span>
+        <span class="tone-tag">Empowering</span>
+        <span class="tone-tag">Conversational</span>
+        <span class="tone-tag">Warm &amp; relatable</span>
+        <span class="tone-tag">Never preachy</span>
+      </div>
+    </div>
+
+    <div class="card">
+      <div class="card-head">
+        <div class="card-step">
+          <span class="card-step-num">i.</span>
+          <span class="card-title">Upload your comments sheet</span>
+        </div>
+        <span class="card-meta">Step 1 of 3</span>
+      </div>
+      <div class="info-box">
+        <span class="info-box-icon"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="10"/><line x1="12" y1="8" x2="12" y2="12"/><line x1="12" y1="16" x2="12.01" y2="16"/></svg></span>
+        Upload an Excel (.xlsx) file with a column of comments or questions. The agent auto-detects the column and you can re-map if needed.
+      </div>
+      <div class="upload-zone" id="upload-zone">
+        <input type="file" accept=".xlsx,.xls,.csv" id="file-input" onchange="handleFile(event)" />
+        <div class="upload-icon">
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round"><path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"/><polyline points="17 8 12 3 7 8"/><line x1="12" y1="3" x2="12" y2="15"/></svg>
+        </div>
+        <div class="upload-text" id="upload-text">Drop your sheet here, or <em>browse</em></div>
+        <div class="upload-hint">.xlsx · .xls · .csv</div>
+      </div>
+    </div>
+
+    <div id="reactive-preview" style="display:none">
+      <div class="card">
+        <div class="card-head">
+          <div class="card-step">
+            <span class="card-step-num">ii.</span>
+            <span class="card-title">Preview &amp; configure</span>
+          </div>
+          <span class="card-meta">Step 2 of 3</span>
+        </div>
+        <div id="stats-row" class="stats-row"></div>
+        <div id="column-mapper"></div>
+      </div>
+
+      <div class="card">
+        <div class="card-head">
+          <div class="card-step">
+            <span class="card-step-num">iii.</span>
+            <span class="card-title">Generate &amp; review replies</span>
+          </div>
+          <span class="card-meta">Step 3 of 3</span>
+        </div>
+        <div id="progress-section" style="display:none">
+          <div class="progress-block">
+            <div class="progress-head">
+              <span class="progress-text" id="progress-label">Generating replies…</span>
+              <span class="progress-pct" id="progress-pct">0%</span>
+            </div>
+            <div class="progress-bar"><div class="progress-fill" id="progress-fill" style="width:0%"></div></div>
+          </div>
+        </div>
+        <div id="table-section">
+          <div class="table-wrap">
+            <table id="preview-table">
+              <thead><tr>
+                <th>#</th>
+                <th>Comment / Question</th>
+                <th>Generated Reply</th>
+                <th style="text-align:center;">Status</th>
+              </tr></thead>
+              <tbody id="table-body"></tbody>
+            </table>
+          </div>
+        </div>
+        <div class="actions">
+          <button class="btn btn-primary" id="generate-btn" onclick="generateReplies()">
+            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><polygon points="12 2 15 8.5 22 9.3 17 14 18.2 21 12 17.8 5.8 21 7 14 2 9.3 9 8.5 12 2"/></svg>
+            Generate all replies
+          </button>
+          <button class="btn btn-sage" id="export-btn" onclick="exportExcel()" style="display:none">
+            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"/><polyline points="7 10 12 15 17 10"/><line x1="12" y1="15" x2="12" y2="3"/></svg>
+            Download filled sheet
+          </button>
+          <button class="btn btn-ghost" onclick="resetReactive()">
+            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><polyline points="23 4 23 10 17 10"/><path d="M20.49 15a9 9 0 1 1-2.12-9.36L23 10"/></svg>
+            Reset
+          </button>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- PROACTIVE PANEL -->
+  <div id="panel-proactive" class="panel" style="display:none">
+
+    <div class="tone-strip">
+      <span class="tone-label">Strategy lens</span>
+      <div class="tone-tags">
+        <span class="tone-tag">Start conversations</span>
+        <span class="tone-tag">Cultural moments</span>
+        <span class="tone-tag">UGC triggers</span>
+        <span class="tone-tag">Engagement hooks</span>
+        <span class="tone-tag">Brand-relevant angles</span>
+      </div>
+    </div>
+
+    <div class="card">
+      <div class="card-head">
+        <div class="card-step">
+          <span class="card-step-num">i.</span>
+          <span class="card-title">Describe the opportunity</span>
+        </div>
+        <span class="card-meta">Brief in your own words</span>
+      </div>
+
+      <div class="field-label">The moment</div>
+      <textarea class="opp-input" id="opp-input" placeholder="e.g. Eid Al Adha is coming up and people have 7 days off — what conversations can the brand spark around hair routines, celebrations, and self-care during the holiday?"></textarea>
+
+      <div style="margin-top:24px;">
+        <div class="field-label">Idea types to generate</div>
+        <div class="pill-row">
+          <button class="pill active" onclick="togglePill(this)" data-type="post"><span class="pill-mark"></span>Post idea</button>
+          <button class="pill active" onclick="togglePill(this)" data-type="story"><span class="pill-mark"></span>Story / poll</button>
+          <button class="pill active" onclick="togglePill(this)" data-type="ugc"><span class="pill-mark"></span>UGC prompt</button>
+          <button class="pill active" onclick="togglePill(this)" data-type="conversation"><span class="pill-mark"></span>Conversation starter</button>
+          <button class="pill active" onclick="togglePill(this)" data-type="activation"><span class="pill-mark"></span>Activation idea</button>
+        </div>
+      </div>
+
+      <div class="actions">
+        <button class="btn btn-primary" onclick="generateIdeas()">
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><polygon points="12 2 15 8.5 22 9.3 17 14 18.2 21 12 17.8 5.8 21 7 14 2 9.3 9 8.5 12 2"/></svg>
+          Generate ideas
+        </button>
+        <button class="btn btn-ghost" onclick="clearIdeas()">
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><polyline points="23 4 23 10 17 10"/><path d="M20.49 15a9 9 0 1 1-2.12-9.36L23 10"/></svg>
+          Clear
+        </button>
+      </div>
+    </div>
+
+    <div id="ideas-output"></div>
+  </div>
+
+</div>
+
+<!-- TWEAKS -->
+<div class="tweaks" id="tweaks">
+  <div class="tweaks-head">
+    <div class="tweaks-title">Tweaks</div>
+    <button class="tweaks-close" onclick="closeTweaks()" aria-label="Close">
+      <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round"><line x1="18" y1="6" x2="6" y2="18"/><line x1="6" y1="6" x2="18" y2="18"/></svg>
+    </button>
+  </div>
+  <div class="tweaks-row">
+    <div class="tweaks-label">Theme</div>
+    <div class="tweaks-seg" id="seg-theme">
+      <button data-theme="light" class="on">Cream</button>
+      <button data-theme="dark">Midnight gold</button>
+    </div>
+  </div>
+  <div class="tweaks-row">
+    <div class="tweaks-label">Density</div>
+    <div class="tweaks-seg" id="seg-density">
+      <button data-density="comfortable" class="on">Comfortable</button>
+      <button data-density="compact">Compact</button>
+    </div>
+  </div>
+</div>
+
+<script>
+// ─────────────────────────────────────────
+//  OPENAI CONFIG
+// ─────────────────────────────────────────
+const OPENAI_KEY = "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";
+const OPENAI_MODEL = "gpt-4o";
+
+async function openaiChat(system, user, maxTokens = 1200) {
+  const response = await fetch("https://api.openai.com/v1/chat/completions", {
+    method: "POST",
+    headers: {
+      "Content-Type": "application/json",
+      "Authorization": `Bearer ${OPENAI_KEY}`
+    },
+    body: JSON.stringify({
+      model: OPENAI_MODEL,
+      max_tokens: maxTokens,
+      messages: [
+        { role: "system", content: system },
+        { role: "user", content: user }
+      ]
+    })
+  });
+  const data = await response.json();
+  if (!response.ok) throw new Error(data.error?.message || "OpenAI error");
+  return data.choices[0].message.content.trim();
+}
+
+// ─────────────────────────────────────────
+//  STATE
+// ─────────────────────────────────────────
+let sheetData = [];
+let headers = [];
+let commentColIndex = -1;
+let replyColName = 'Generated Reply';
+let repliesGenerated = [];
+let activeTab = 'reactive';
+
+// ─────────────────────────────────────────
+//  TABS
+// ─────────────────────────────────────────
+function switchTab(tab) {
+  activeTab = tab;
+  document.getElementById('panel-reactive').style.display = tab === 'reactive' ? 'block' : 'none';
+  document.getElementById('panel-proactive').style.display = tab === 'proactive' ? 'block' : 'none';
+  document.getElementById('tab-reactive').classList.toggle('active', tab === 'reactive');
+  document.getElementById('tab-proactive').classList.toggle('active', tab === 'proactive');
+}
+
+// ─────────────────────────────────────────
+//  FILE HANDLING
+// ─────────────────────────────────────────
+function handleFile(e) {
+  const file = e.target.files[0];
+  if (!file) return;
+  const reader = new FileReader();
+  reader.onload = (evt) => {
+    const wb = XLSX.read(evt.target.result, { type: 'binary' });
+    const ws = wb.Sheets[wb.SheetNames[0]];
+    const json = XLSX.utils.sheet_to_json(ws, { header: 1 });
+    headers = json[0] || [];
+    sheetData = json.slice(1).filter(r => r.some(c => c));
+    document.getElementById('upload-text').innerHTML = `Loaded <em>${escHtml(file.name)}</em>`;
+    renderPreview();
+    // gently scroll into the preview
+    setTimeout(()=>{ document.getElementById('reactive-preview').scrollIntoView({behavior:'smooth', block:'start'}); }, 100);
+  };
+  reader.readAsBinaryString(file);
+}
+
+// drag-and-drop visuals
+const dropZone = document.getElementById('upload-zone');
+['dragenter','dragover'].forEach(evt => dropZone.addEventListener(evt, e=>{ e.preventDefault(); dropZone.classList.add('drag'); }));
+['dragleave','drop'].forEach(evt => dropZone.addEventListener(evt, e=>{ e.preventDefault(); dropZone.classList.remove('drag'); }));
+
+function autoDetectCommentCol() {
+  const keywords = ['comment','question','message','text','content','feedback','reply','post'];
+  for (let i = 0; i < headers.length; i++) {
+    const h = String(headers[i]).toLowerCase();
+    if (keywords.some(k => h.includes(k))) return i;
+  }
+  return 0;
+}
+
+function renderPreview() {
+  commentColIndex = autoDetectCommentCol();
+  document.getElementById('reactive-preview').style.display = 'block';
+
+  document.getElementById('stats-row').innerHTML = `
+    <div class="stat"><div class="stat-l">Comments</div><div class="stat-n">${sheetData.length}</div></div>
+    <div class="stat"><div class="stat-l">Columns</div><div class="stat-n">${headers.length}</div></div>
+    <div class="stat"><div class="stat-l">Replied</div><div class="stat-n" id="stat-replied"><em>0</em></div></div>
+  `;
+
+  const opts = headers.map((h,i) => `<option value="${i}" ${i===commentColIndex?'selected':''}>${escHtml(String(h))}</option>`).join('');
+  document.getElementById('column-mapper').innerHTML = `
+    <div class="mapper">
+      <div class="mapper-label">Comment column · auto-detected</div>
+      <div class="select-wrap">
+        <select onchange="commentColIndex=+this.value;renderTable()">${opts}</select>
+      </div>
+    </div>
+  `;
+  renderTable();
+}
+
+function renderTable() {
+  repliesGenerated = new Array(sheetData.length).fill(null);
+  const tbody = document.getElementById('table-body');
+  tbody.innerHTML = sheetData.map((row, i) => `
+    <tr id="row-${i}">
+      <td class="col-num">${i+1}</td>
+      <td class="col-comment">${escHtml(String(row[commentColIndex] || '—'))}</td>
+      <td class="col-reply pending" id="reply-${i}">Pending</td>
+      <td class="col-status"><span class="badge badge-pending" id="badge-${i}"><span class="badge-dot"></span>Pending</span></td>
+    </tr>
+  `).join('');
+}
+
+function escHtml(s) {
+  return s.replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;');
+}
+
+// ─────────────────────────────────────────
+//  GENERATE REPLIES
+// ─────────────────────────────────────────
+async function generateReplies() {
+  const btn = document.getElementById('generate-btn');
+  btn.disabled = true;
+  btn.innerHTML = '<span class="spinner"></span> Generating…';
+  document.getElementById('progress-section').style.display = 'block';
+
+  const batchSize = 5;
+  let done = 0;
+
+  const systemPrompt = `You are Pantene Arabia's community manager. Pantene's tone of voice is:
+- Confident and empowering (never shy or apologetic)
+- Fun, playful, and conversational — like a stylish friend, not a brand
+- Warm and relatable — speaks to Arab women with genuine understanding
+- Uses emojis naturally (not excessively) — 1-2 per reply max
+- Replies are SHORT (1-3 sentences max), punchy, and feel human
+- Never robotic, never preachy, never over-formal
+- NEVER say "We at Pantene" — just reply naturally
+- Arabic names or cultural references are a bonus when relevant
+- Always end on a positive/uplifting note
+- Mix English and light Arabish where it feels natural (e.g. "yalla", "habibi", "mashallah")
+
+Reply to each numbered comment. Return ONLY a JSON array like: ["reply1","reply2",...] — no extra text, no markdown.`;
+
+  for (let i = 0; i < sheetData.length; i += batchSize) {
+    const batch = sheetData.slice(i, i + batchSize);
+    const batchComments = batch.map((r, idx) => `${i+idx+1}. ${String(r[commentColIndex]||'')}`).join('\n');
+
+    // Mark batch as processing
+    batch.forEach((_, idx) => {
+      const globalIdx = i + idx;
+      const badge = document.getElementById(`badge-${globalIdx}`);
+      if (badge) { badge.className = 'badge badge-processing'; badge.innerHTML = '<span class="badge-dot"></span>Writing'; }
+    });
+
+    try {
+      const text = await openaiChat(systemPrompt, `Reply to these comments:\n${batchComments}`, 1000);
+      const clean = text.replace(/^```json|^```|```$/g, '').trim();
+      let replies;
+      try { replies = JSON.parse(clean); } catch { replies = batch.map(() => "Thanks for reaching out!"); }
+
+      batch.forEach((_, idx) => {
+        const globalIdx = i + idx;
+        const reply = replies[idx] || "Thanks for the love!";
+        repliesGenerated[globalIdx] = reply;
+        const r = document.getElementById(`reply-${globalIdx}`);
+        r.textContent = reply;
+        r.className = 'col-reply';
+        const badge = document.getElementById(`badge-${globalIdx}`);
+        badge.className = 'badge badge-done';
+        badge.innerHTML = '<span class="badge-dot"></span>Done';
+      });
+
+    } catch(err) {
+      batch.forEach((_, idx) => {
+        const globalIdx = i + idx;
+        document.getElementById(`reply-${globalIdx}`).textContent = 'Error generating reply';
+        const badge = document.getElementById(`badge-${globalIdx}`);
+        badge.className = 'badge badge-error';
+        badge.innerHTML = '<span class="badge-dot"></span>Error';
+      });
+    }
+
+    done += batch.length;
+    const pct = Math.round((done / sheetData.length) * 100);
+    document.getElementById('progress-fill').style.width = pct + '%';
+    document.getElementById('progress-label').textContent = `${done} of ${sheetData.length} replies generated`;
+    document.getElementById('progress-pct').textContent = pct + '%';
+    const repliedEl = document.getElementById('stat-replied');
+    if (repliedEl) repliedEl.innerHTML = `<em>${done}</em>`;
+  }
+
+  document.getElementById('progress-label').textContent = `All ${sheetData.length} replies generated`;
+  btn.disabled = false;
+  btn.innerHTML = '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><polyline points="23 4 23 10 17 10"/><path d="M20.49 15a9 9 0 1 1-2.12-9.36L23 10"/></svg> Regenerate';
+  document.getElementById('export-btn').style.display = 'inline-flex';
+}
+
+// ─────────────────────────────────────────
+//  EXPORT
+// ─────────────────────────────────────────
+function exportExcel() {
+  const exportData = [
+    [...headers, replyColName],
+    ...sheetData.map((row, i) => [...row, repliesGenerated[i] || ''])
+  ];
+  const ws = XLSX.utils.aoa_to_sheet(exportData);
+  const wb = XLSX.utils.book_new();
+  XLSX.utils.book_append_sheet(wb, ws, 'Community Replies');
+  XLSX.writeFile(wb, 'Community_Replies.xlsx');
+}
+
+function resetReactive() {
+  sheetData = []; headers = []; repliesGenerated = [];
+  document.getElementById('reactive-preview').style.display = 'none';
+  document.getElementById('upload-text').innerHTML = 'Drop your sheet here, or <em>browse</em>';
+  document.getElementById('file-input').value = '';
+  document.getElementById('progress-section').style.display = 'none';
+  document.getElementById('export-btn').style.display = 'none';
+}
+
+// ─────────────────────────────────────────
+//  PROACTIVE
+// ─────────────────────────────────────────
+function togglePill(el) { el.classList.toggle('active'); }
+
+async function generateIdeas() {
+  const opp = document.getElementById('opp-input').value.trim();
+  if (!opp) { alert('Please describe the opportunity first.'); return; }
+
+  const activePills = [...document.querySelectorAll('.pill.active')].map(p => p.dataset.type);
+  if (!activePills.length) { alert('Select at least one idea type.'); return; }
+
+  const output = document.getElementById('ideas-output');
+  output.innerHTML = `
+    <div class="loading-card">
+      <div class="loading-orb"></div>
+      <div class="loading-title">Brainstorming the moment…</div>
+      <div class="loading-sub">Mixing culture · tone · hair</div>
+    </div>
+  `;
+
+  const typeLabels = {
+    post: 'Post idea',
+    story: 'Story / poll',
+    ugc: 'UGC prompt',
+    conversation: 'Conversation starter',
+    activation: 'Activation idea'
+  };
+
+  const systemPrompt = `You are a creative social media strategist for Pantene Arabia. Your job is to generate brilliant community management ideas that are:
+- Culturally relevant to the Arab world (GCC + Levant + Egypt)
+- Fun, confident, empowering — true to Pantene's tone
+- Hair-relevant but not forced — naturally tied to the cultural moment
+- Social-first: designed to drive comments, shares, and UGC
+
+Return a JSON array of idea objects. Each object must have:
+{
+  "type": one of: ${activePills.join(', ')},
+  "title": short punchy title (max 8 words),
+  "body": the idea description (2-3 sentences),
+  "caption": a sample post caption with emojis (ready to post)
+}
+
+Generate 2 ideas per requested type. Return ONLY the JSON array, no markdown.`;
+
+  try {
+    const text = await openaiChat(systemPrompt, `Opportunity: ${opp}\n\nIdea types needed: ${activePills.join(', ')}`, 1400);
+    const clean = text.replace(/^```json|^```|```$/g, '').trim();
+    let ideas;
+    try { ideas = JSON.parse(clean); } catch(e) { throw new Error('Parse error'); }
+
+    output.innerHTML = `
+      <div class="card">
+        <div class="card-head">
+          <div class="card-step">
+            <span class="card-step-num">ii.</span>
+            <span class="card-title">${ideas.length} ideas, fresh off the press</span>
+          </div>
+          <span class="card-meta">Tap a card to copy caption (coming soon)</span>
+        </div>
+        <div class="ideas-grid">
+          ${ideas.map(idea => `
+            <div class="idea-card">
+              <div class="idea-type">${typeLabels[idea.type] || idea.type}</div>
+              <div class="idea-title">${escHtml(idea.title)}</div>
+              <div class="idea-body">${escHtml(idea.body)}</div>
+              <div class="idea-caption">${escHtml(idea.caption)}</div>
+            </div>
+          `).join('')}
+        </div>
+      </div>
+    `;
+  } catch(err) {
+    output.innerHTML = `<div class="card"><div style="color:var(--rose); font-family:'Cormorant Garamond',serif; font-style:italic; font-size:18px;">Something went wrong generating ideas — please try again.</div></div>`;
+  }
+}
+
+function clearIdeas() {
+  document.getElementById('ideas-output').innerHTML = '';
+  document.getElementById('opp-input').value = '';
+}
+
+// ─────────────────────────────────────────
+//  TWEAKS PANEL (host-integrated)
+// ─────────────────────────────────────────
+const tweaksEl = document.getElementById('tweaks');
+window.addEventListener('message', (e) => {
+  if (!e.data || typeof e.data !== 'object') return;
+  if (e.data.type === '__activate_edit_mode') tweaksEl.classList.add('open');
+  if (e.data.type === '__deactivate_edit_mode') tweaksEl.classList.remove('open');
+});
+window.parent.postMessage({type: '__edit_mode_available'}, '*');
+function closeTweaks() {
+  tweaksEl.classList.remove('open');
+  window.parent.postMessage({type: '__edit_mode_dismissed'}, '*');
+}
+
+// Theme
+function setTheme(t) {
+  document.documentElement.setAttribute('data-theme', t === 'dark' ? 'dark' : 'light');
+  document.querySelectorAll('#seg-theme button').forEach(b => b.classList.toggle('on', b.dataset.theme === t));
+  try { localStorage.setItem('ca-theme', t); } catch(e) {}
+}
+document.querySelectorAll('#seg-theme button').forEach(b => b.addEventListener('click', () => setTheme(b.dataset.theme)));
+document.getElementById('theme-toggle').addEventListener('click', () => {
+  const cur = document.documentElement.getAttribute('data-theme') || 'light';
+  setTheme(cur === 'dark' ? 'light' : 'dark');
+});
+
+// Density
+function setDensity(d) {
+  document.documentElement.style.setProperty('--card-pad', d === 'compact' ? '22px' : '32px');
+  document.querySelectorAll('.card').forEach(c => c.style.padding = d === 'compact' ? '22px' : '');
+  document.querySelectorAll('#seg-density button').forEach(b => b.classList.toggle('on', b.dataset.density === d));
+  try { localStorage.setItem('ca-density', d); } catch(e) {}
+}
+document.querySelectorAll('#seg-density button').forEach(b => b.addEventListener('click', () => setDensity(b.dataset.density)));
+
+// Restore prefs
+try {
+  const t = localStorage.getItem('ca-theme'); if (t) setTheme(t);
+  const d = localStorage.getItem('ca-density'); if (d) setDensity(d);
+} catch(e) {}
+</script>
+</body>
+</html>
